@@ -137,31 +137,12 @@ public:
             return false;
         }
 
-        // Iterate through edges, for each edge, find an edge with corresponding src and dst id in other graph
+        // Record all edges with src/dst ids, to be compared
         for (auto I = begin(), E = end(); I != E; ++I) {
             for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
-                myNode* src = (*S)->getSrcNode();
-                myNode* dst = (*S)->getDstNode();
-                unsigned id = src->getId();
-                myNode* graph2_src = graph2.getMap()[src->getId()];
-
-                bool marker = true;
-                for (auto K = graph2_src->outEdgeBegin(), L = graph2_src->outEdgeEnd(); K != L; ++K) {
-                    if ((*K)->getDstID() == dst->getId())
-                    {
-                        edges_1.insert({(*K)->getSrcID(), (*K)->getDstID()});
-                        marker = false;
-                        break;
-                    }
-                }
-                if (marker)
-                {
-                    return false;
-                }
+                edges_1.insert({(*S)->getSrcID(), (*S)->getDstID()});
             }
         }
-
-        // Confirm that there are no edges in graph2 not in graph1
         for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
             for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
                 edges_2.insert({(*S)->getSrcID(), (*S)->getDstID()});
