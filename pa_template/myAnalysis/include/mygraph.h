@@ -119,7 +119,7 @@ public:
         return newGraph;
     }
 
-    bool operator==(myGraph graph2) 
+    bool operator==(myGraph& graph2) 
     {
         std::set<unsigned> ids_1;
         std::set<unsigned> ids_2;
@@ -198,29 +198,15 @@ private:
     void testGetEntry()
     {
         cout << "Running testGetEntry..." << endl;
-        myGraph graph;
-
-        myNode* node1 = new myNode(1);
-        myNode* node2 = new myNode(2);
-        myNode* node3 = new myNode(3);
-        graph.addNode(node1->getId(), node1);
-        graph.addNode(node2->getId(), node2);
-        graph.addNode(node3->getId(), node3);
-
-        // Add edges
-        myEdge* edge1 = new myEdge(node1, node2);
-        myEdge* edge2 = new myEdge(node2, node3);
-        myEdge* edge3 = new myEdge(node1, node3);
-        graph.addEdge(edge1);
-        graph.addEdge(edge2);
-        graph.addEdge(edge3);
+        unsigned ids[] = {1, 2, 3};
+        myGraph graph = stdGraph(ids);
 
         myNode* nodePointer = graph.getEntry();
-        assert(nodePointer == node1);
+        assert(nodePointer == graph.getMap()[1]);
 
         myNode* node4 = new myNode(4);
         graph.addNode(node4->getId(), node4);
-        myEdge* edge4 = new myEdge(node4, node1);
+        myEdge* edge4 = new myEdge(node4, graph.getMap()[1]);
         graph.addEdge(edge4);
 
         nodePointer = graph.getEntry();
@@ -232,29 +218,15 @@ private:
     void testGetExit()
     {
         cout << "Running testGetExit..." << endl;
-        myGraph graph;
-
-        myNode* node1 = new myNode(1);
-        myNode* node2 = new myNode(2);
-        myNode* node3 = new myNode(3);
-        graph.addNode(node1->getId(), node1);
-        graph.addNode(node2->getId(), node2);
-        graph.addNode(node3->getId(), node3);
-
-        // Add edges
-        myEdge* edge1 = new myEdge(node1, node2);
-        myEdge* edge2 = new myEdge(node2, node3);
-        myEdge* edge3 = new myEdge(node1, node3);
-        graph.addEdge(edge1);
-        graph.addEdge(edge2);
-        graph.addEdge(edge3);
+        unsigned ids[] = {1, 2, 3};
+        myGraph graph = stdGraph(ids);
 
         myNode* nodePointer = graph.getExit();
-        assert(nodePointer == node3);
+        assert(nodePointer == graph.getMap()[3]);
 
         myNode* node4 = new myNode(4);
         graph.addNode(node4->getId(), node4);
-        myEdge* edge4 = new myEdge(node3, node4);
+        myEdge* edge4 = new myEdge(graph.getMap()[3], node4);
         graph.addEdge(edge4);
 
         nodePointer = graph.getExit();
@@ -266,39 +238,9 @@ private:
     void testAddition()
     {
         cout << "Running testAddition..." << endl;
-        myGraph graph;
-
-        myNode* node1 = new myNode(1);
-        myNode* node2 = new myNode(2);
-        myNode* node3 = new myNode(3);
-        graph.addNode(node1->getId(), node1);
-        graph.addNode(node2->getId(), node2);
-        graph.addNode(node3->getId(), node3);
-
-        // Add edges
-        myEdge* edge1 = new myEdge(node1, node2);
-        myEdge* edge2 = new myEdge(node2, node3);
-        myEdge* edge3 = new myEdge(node1, node3);
-        graph.addEdge(edge1);
-        graph.addEdge(edge2);
-        graph.addEdge(edge3);
-
-        myGraph graph2;
-
-        myNode* node21 = new myNode(1);
-        myNode* node22 = new myNode(2);
-        myNode* node23 = new myNode(3);
-        graph2.addNode(node21->getId(), node21);
-        graph2.addNode(node22->getId(), node22);
-        graph2.addNode(node23->getId(), node23);
-
-        // Add edges
-        myEdge* edge21 = new myEdge(node21, node22);
-        myEdge* edge22 = new myEdge(node22, node23);
-        myEdge* edge23 = new myEdge(node21, node23);
-        graph2.addEdge(edge21);
-        graph2.addEdge(edge22);
-        graph2.addEdge(edge23);
+        unsigned ids[] = {1, 2, 3};
+        myGraph graph = stdGraph(ids);
+        myGraph graph2 = stdGraph(ids);
 
         myGraph newGraph = graph + graph2;
         assert(newGraph.getEntry() != newGraph.getMap()[4]);
@@ -312,11 +254,35 @@ private:
     void testEquivalence()
     {
         cout << "Running Equivalence..." << endl;
+        
+        unsigned ids[] = {1, 2, 3};
+        myGraph graph = stdGraph(ids);
+        myGraph graph2 = stdGraph(ids);
+
+        assert(graph == graph2);
+
+        myNode* node4 = new myNode(4);
+        graph.addNode(node4->getId(), node4);
+
+        assert(!(graph == graph2));
+
+        myGraph graph3 = stdGraph(ids);
+        myEdge* edge = new myEdge(graph3.getMap()[3], graph3.getMap()[2]);
+        graph3.addEdge(edge);
+
+        assert(!(graph == graph3));
+        
+
+        cout << "testEquivalence passed!" << endl;
+    }
+
+    myGraph stdGraph(unsigned ids[])
+    {
         myGraph graph;
 
-        myNode* node1 = new myNode(1);
-        myNode* node2 = new myNode(2);
-        myNode* node3 = new myNode(3);
+        myNode* node1 = new myNode(ids[0]);
+        myNode* node2 = new myNode(ids[1]);
+        myNode* node3 = new myNode(ids[2]);
         graph.addNode(node1->getId(), node1);
         graph.addNode(node2->getId(), node2);
         graph.addNode(node3->getId(), node3);
@@ -328,34 +294,10 @@ private:
         graph.addEdge(edge1);
         graph.addEdge(edge2);
         graph.addEdge(edge3);
-
-        myGraph graph2;
-
-        myNode* node21 = new myNode(1);
-        myNode* node22 = new myNode(2);
-        myNode* node23 = new myNode(3);
-        graph2.addNode(node21->getId(), node21);
-        graph2.addNode(node22->getId(), node22);
-        graph2.addNode(node23->getId(), node23);
-
-        // Add edges
-        myEdge* edge21 = new myEdge(node21, node22);
-        myEdge* edge22 = new myEdge(node22, node23);
-        myEdge* edge23 = new myEdge(node21, node23);
-        graph2.addEdge(edge21);
-        graph2.addEdge(edge22);
-        graph2.addEdge(edge23);
-
-        assert(graph == graph2);
-
-        myNode* node4 = new myNode(4);
-        graph.addNode(node4->getId(), node4);
-        myEdge* edge4 = new myEdge(node3, node4);
-        graph.addEdge(edge4);
-
-        assert(!(graph == graph2));
-
-        cout << "testEquivalence passed!" << endl;
+        
+        return graph;
     }
+
+
 };
 #endif 
