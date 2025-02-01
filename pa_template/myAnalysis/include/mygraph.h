@@ -123,8 +123,7 @@ public:
     {
         std::set<unsigned> ids_1;
         std::set<unsigned> ids_2;
-        std::set<myEdge*> edges_1;
-        std::set<myEdge*> edges_2;
+        std::set<std::pair<unsigned, unsigned>> edges_1, edges_2;
 
         // Iterate over nodes and save IDs
         for (auto I = begin(), E = end(); I != E; ++I) {
@@ -150,7 +149,7 @@ public:
                 for (auto K = graph2_src->outEdgeBegin(), L = graph2_src->outEdgeEnd(); K != L; ++K) {
                     if ((*K)->getDstID() == dst->getId())
                     {
-                        edges_1.insert((*K));
+                        edges_1.insert({(*K)->getSrcID(), (*K)->getDstID()});
                         marker = false;
                         break;
                     }
@@ -165,7 +164,7 @@ public:
         // Confirm that there are no edges in graph2 not in graph1
         for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
             for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
-                edges_2.insert((*S));
+                edges_2.insert({(*S)->getSrcID(), (*S)->getDstID()});
             }
         }
         if (edges_1 != edges_2)
