@@ -10,6 +10,8 @@
 #include "graph_visual.h"
 #include "graph_test.h"
 #include "graph_generator.h"
+#include <unordered_map>
+
 
 using namespace std;
 
@@ -66,60 +68,57 @@ public:
         return m_IDToNodeMap;
     }
 
-    myGraph operator+(myGraph graph2)
-    {
+    myGraph operator+(myGraph& graph2) {
         myGraph newGraph;
-        myNode* nodeExit;
-        myNode* nodeEntry;
+        unordered_map<unsigned, myNode*> nodeMapping;  // Maps old IDs to new nodes
         unsigned id_offset = 0;
-        for (auto I = begin(), E = end(); I != E; ++I)
-        {
-            if (I->second->getId() > id_offset)
-            {
-                id_offset = I->second->getId();
-            }
-            if (I->second == getExit())
-            {
-                nodeExit = new myNode(I->second->getId());
-                newGraph.addNode(nodeExit->getId(), nodeExit);
-            } else {
-                myNode* node = new myNode(I->second->getId());
-                newGraph.addNode(node->getId(), node);
-            }
+
+        // Step 1: Find the highest existing ID to offset graph2's nodes
+        for (auto I = begin(), E = end(); I != E; ++I) {
+            id_offset = max(id_offset, I->second->getId());
         }
-        for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I)
-        {
-            if (I->second == graph2.getEntry())
-            {
-                nodeEntry = new myNode(I->second->getId() + id_offset);
-                newGraph.addNode(nodeEntry->getId(), nodeEntry);
-            } else {
-                myNode* node = new myNode(I->second->getId() + id_offset);
-                newGraph.addNode(node->getId(), node);
-            }
+        id_offset += 1;  // Ensure graph2's IDs don't overlap
+
+        // Step 2: Copy nodes from `this` to `newGraph`
+        for (auto I = begin(), E = end(); I != E; ++I) {
+            myNode* newNode = new myNode(I->second->getId()); 
+            newGraph.addNode(newNode->getId(), newNode);
+            nodeMapping[I->second->getId()] = newNode;
         }
-        for (auto I = begin(), E = end(); I != E; ++I)
-        {
-            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S)
-            {
+
+        // Step 3: Copy nodes from `graph2` to `newGraph`
+        for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
+            myNode* newNode = new myNode(I->second->getId() + id_offset);
+            newGraph.addNode(newNode->getId(), newNode);
+            nodeMapping[I->second->getId() + id_offset] = newNode;
+        }
+
+        // Step 4: Copy edges from `this` to `newGraph`
+        for (auto I = begin(), E = end(); I != E; ++I) {
+            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
                 unsigned srcId = (*S)->getSrcNode()->getId();
                 unsigned dstId = (*S)->getDstNode()->getId();
-                myEdge* edge = new myEdge(newGraph.getMap()[srcId], newGraph.getMap()[dstId]);
+                myEdge* edge = new myEdge(nodeMapping[srcId], nodeMapping[dstId]);
                 newGraph.addEdge(edge);
             }
         }
-        for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I)
-        {
-            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S)
-            {
+
+        // Step 5: Copy edges from `graph2` to `newGraph`
+        for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
+            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
                 unsigned srcId = (*S)->getSrcNode()->getId() + id_offset;
                 unsigned dstId = (*S)->getDstNode()->getId() + id_offset;
-                myEdge* edge = new myEdge(newGraph.getMap()[srcId], newGraph.getMap()[dstId]);
+                myEdge* edge = new myEdge(nodeMapping[srcId], nodeMapping[dstId]);
                 newGraph.addEdge(edge);
             }
         }
+
+        // Step 6: Connect `this` graph's exit node to `graph2`'s entry node
+        myNode* nodeExit = nodeMapping[getExit()->getId()];
+        myNode* nodeEntry = nodeMapping[graph2.getEntry()->getId() + id_offset];
         myEdge* edge = new myEdge(nodeExit, nodeEntry);
         newGraph.addEdge(edge);
+
         return newGraph;
     }
 
