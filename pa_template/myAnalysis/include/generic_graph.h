@@ -181,10 +181,10 @@ public:
 
     virtual ~GenericGraph()
     {
-        cout << "graph: " << this << endl;
+        //cout << "graph: " << this << endl;
         for (auto I = m_IDToNodeMap.begin(), E = m_IDToNodeMap.end(); I != E; ++I)
         {
-            cout << I->second << endl;
+            //cout << I->second << endl;
             delete I->second;
         }      
     }

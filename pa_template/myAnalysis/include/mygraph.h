@@ -40,6 +40,7 @@ public:
 
     myNode* getEntry () const
     {
+        // Iterate over nodes, return the node that has no in edges
         for (auto I = m_IDToNodeMap.begin(), E = m_IDToNodeMap.end(); I != E; ++I)
         {
             //cout << I->second << endl;
@@ -53,6 +54,7 @@ public:
 
     myNode* getExit () const
     {
+        // Iterate over nodes, return the node that has no out edges
         for (auto I = m_IDToNodeMap.begin(), E = m_IDToNodeMap.end(); I != E; ++I)
         {
             if (I->second->outEdgeBegin() == I->second->outEdgeEnd())
@@ -70,30 +72,27 @@ public:
 
     myGraph operator+(myGraph& graph2) {
         myGraph newGraph;
-        unordered_map<unsigned, myNode*> nodeMapping;  // Maps old IDs to new nodes
+        unordered_map<unsigned, myNode*> nodeMapping;
         unsigned id_offset = 0;
 
-        // Step 1: Find the highest existing ID to offset graph2's nodes
+        // Find the highest existing ID to offset graph2's nodes
         for (auto I = begin(), E = end(); I != E; ++I) {
             id_offset = max(id_offset, I->second->getId());
         }
-        id_offset += 1;  // Ensure graph2's IDs don't overlap
 
-        // Step 2: Copy nodes from `this` to `newGraph`
+        // Copy nodes from this and graph2 to newGraph
         for (auto I = begin(), E = end(); I != E; ++I) {
             myNode* newNode = new myNode(I->second->getId()); 
             newGraph.addNode(newNode->getId(), newNode);
             nodeMapping[I->second->getId()] = newNode;
         }
-
-        // Step 3: Copy nodes from `graph2` to `newGraph`
         for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
             myNode* newNode = new myNode(I->second->getId() + id_offset);
             newGraph.addNode(newNode->getId(), newNode);
             nodeMapping[I->second->getId() + id_offset] = newNode;
         }
 
-        // Step 4: Copy edges from `this` to `newGraph`
+        // Copy edges from this and graph2 to newGraph
         for (auto I = begin(), E = end(); I != E; ++I) {
             for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
                 unsigned srcId = (*S)->getSrcNode()->getId();
@@ -102,8 +101,6 @@ public:
                 newGraph.addEdge(edge);
             }
         }
-
-        // Step 5: Copy edges from `graph2` to `newGraph`
         for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
             for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
                 unsigned srcId = (*S)->getSrcNode()->getId() + id_offset;
@@ -113,7 +110,7 @@ public:
             }
         }
 
-        // Step 6: Connect `this` graph's exit node to `graph2`'s entry node
+        // Connect `this` graph's exit node to `graph2`'s entry node
         myNode* nodeExit = nodeMapping[getExit()->getId()];
         myNode* nodeEntry = nodeMapping[graph2.getEntry()->getId() + id_offset];
         myEdge* edge = new myEdge(nodeExit, nodeEntry);
@@ -122,9 +119,61 @@ public:
         return newGraph;
     }
 
-    bool operator==(myGraph const& graph2) const
+    bool operator==(myGraph graph2) 
     {
-        return false;
+        std::set<unsigned> ids_1;
+        std::set<unsigned> ids_2;
+        std::set<myEdge*> edges_1;
+        std::set<myEdge*> edges_2;
+
+        // Iterate over nodes and save IDs
+        for (auto I = begin(), E = end(); I != E; ++I) {
+            ids_1.insert(I->second->getId());
+        }
+        for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
+            ids_2.insert(I->second->getId());
+        }
+        if (ids_1 != ids_2)
+        {
+            return false;
+        }
+
+        // Iterate through edges, for each edge, find an edge with corresponding src and dst id in other graph
+        for (auto I = begin(), E = end(); I != E; ++I) {
+            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
+                myNode* src = (*S)->getSrcNode();
+                myNode* dst = (*S)->getDstNode();
+                unsigned id = src->getId();
+                myNode* graph2_src = graph2.getMap()[src->getId()];
+
+                bool marker = true;
+                for (auto K = graph2_src->outEdgeBegin(), L = graph2_src->outEdgeEnd(); K != L; ++K) {
+                    if ((*K)->getDstID() == dst->getId())
+                    {
+                        edges_1.insert((*K));
+                        marker = false;
+                        break;
+                    }
+                }
+                if (marker)
+                {
+                    return false;
+                }
+            }
+        }
+
+        // Confirm that there are no edges in graph2 not in graph1
+        for (auto I = graph2.begin(), E = graph2.end(); I != E; ++I) {
+            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
+                edges_2.insert((*S));
+            }
+        }
+        if (edges_1 != edges_2)
+        {
+            return false;
+        }
+
+        return true;
     }
 };
 
@@ -147,8 +196,8 @@ public:
     void runTests ()
     {
         // add your own test here
-        //testGetEntry();
-        //testGetExit();
+        testGetEntry();
+        testGetExit();
         testAddition();
         testEquivalence();
         testGraphDump();
@@ -169,43 +218,35 @@ private:
     void testGetEntry()
     {
         cout << "Running testGetEntry..." << endl;
-        myGraph* graph;
+        myGraph graph;
 
         myNode* node1 = new myNode(1);
         myNode* node2 = new myNode(2);
         myNode* node3 = new myNode(3);
-        graph->addNode(node1->getId(), node1);
-        graph->addNode(node2->getId(), node2);
-        graph->addNode(node3->getId(), node3);
+        graph.addNode(node1->getId(), node1);
+        graph.addNode(node2->getId(), node2);
+        graph.addNode(node3->getId(), node3);
 
         // Add edges
         myEdge* edge1 = new myEdge(node1, node2);
         myEdge* edge2 = new myEdge(node2, node3);
         myEdge* edge3 = new myEdge(node1, node3);
-        graph->addEdge(edge1);
-        graph->addEdge(edge2);
-        graph->addEdge(edge3);
+        graph.addEdge(edge1);
+        graph.addEdge(edge2);
+        graph.addEdge(edge3);
 
-        myNode* nodePointer = graph->getEntry();
-        //cout << "Entry pointer: " << nodePointer << endl;
+        myNode* nodePointer = graph.getEntry();
         assert(nodePointer == node1);
 
         myNode* node4 = new myNode(4);
-        graph->addNode(node4->getId(), node4);
+        graph.addNode(node4->getId(), node4);
         myEdge* edge4 = new myEdge(node4, node1);
-        graph->addEdge(edge4);
+        graph.addEdge(edge4);
 
-        nodePointer = graph->getEntry();
+        nodePointer = graph.getEntry();
 
-        //cout << "Entry pointer: " << nodePointer << endl;
-        //cout << "Node 4: " << node4 << endl;
-        //cout << "Node 3: " << node3 << endl;
-        //cout << "Node 2: " << node2 << endl;
-        //cout << "Node 1: " << node1 << endl;
         assert(nodePointer == node4);
         cout << "testGetEntry passed!" << endl;
-        cout << "graph1 Entry: " << &graph << endl;
-        delete graph;
     }
 
     void testGetExit()
@@ -229,7 +270,6 @@ private:
         graph.addEdge(edge3);
 
         myNode* nodePointer = graph.getExit();
-        //cout << "Exit pointer: " << nodePointer << endl;
         assert(nodePointer == node3);
 
         myNode* node4 = new myNode(4);
@@ -239,14 +279,8 @@ private:
 
         nodePointer = graph.getExit();
 
-        //cout << "Exit pointer: " << nodePointer << endl;
-        //cout << "Node 4: " << node4 << endl;
-        //cout << "Node 3: " << node3 << endl;
-        //cout << "Node 2: " << node2 << endl;
-        //cout << "Node 1: " << node1 << endl;
         assert(nodePointer == node4);
         cout << "testGetExit passed!" << endl;
-        cout << "graph1 Exit: " << &graph << endl;
     }
 
     void testAddition()
@@ -271,9 +305,9 @@ private:
 
         myGraph graph2;
 
-        myNode* node21 = new myNode(4);
-        myNode* node22 = new myNode(5);
-        myNode* node23 = new myNode(6);
+        myNode* node21 = new myNode(1);
+        myNode* node22 = new myNode(2);
+        myNode* node23 = new myNode(3);
         graph2.addNode(node21->getId(), node21);
         graph2.addNode(node22->getId(), node22);
         graph2.addNode(node23->getId(), node23);
@@ -291,9 +325,7 @@ private:
         assert(newGraph.getExit() != newGraph.getMap()[3]);
         assert(newGraph.getEntry() == newGraph.getMap()[1]);
         assert(newGraph.getExit() == newGraph.getMap()[6]);
-        cout << "new graph: " << &newGraph << endl;
-        cout << "graph1: " << &graph << endl;
-        cout << "graph2: " << &graph2 << endl;
+
         cout << "testAddition passed!" << endl;
     }
     
@@ -334,14 +366,14 @@ private:
         graph2.addEdge(edge22);
         graph2.addEdge(edge23);
 
-        //assert(graph == graph2);
+        assert(graph == graph2);
 
         myNode* node4 = new myNode(4);
         graph.addNode(node4->getId(), node4);
         myEdge* edge4 = new myEdge(node3, node4);
         graph.addEdge(edge4);
 
-        //assert(!(graph == graph2));
+        assert(!(graph == graph2));
 
         cout << "testEquivalence passed!" << endl;
     }
