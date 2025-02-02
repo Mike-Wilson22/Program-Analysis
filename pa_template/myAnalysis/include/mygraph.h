@@ -155,6 +155,43 @@ public:
 
         return true;
     }
+
+    std::set<std::vector<unsigned>> getPaths()
+    {
+        std::set<std::vector<unsigned>> paths;
+
+        // for each edge, add paths to vectors
+        for (auto I = begin(), E = end(); I != E; ++I) {
+            for (auto S = I->second->outEdgeBegin(), T = I->second->outEdgeEnd(); S != T; ++S) {
+                addPaths(&paths, (*S)->getSrcID(), (*S)->getDstID());
+                std::vector<unsigned> new_path = {(*S)->getSrcID(), (*S)->getDstID()};
+                paths.insert(new_path);
+            }
+            for (auto S = I->second->inEdgeBegin(), T = I->second->inEdgeEnd(); S != T; ++S) {
+                addPaths(&paths, (*S)->getSrcID(), (*S)->getDstID());
+            }
+        }
+
+        return paths;
+    }
+
+    inline void addPaths(std::set<std::vector<unsigned>>* paths, unsigned srcID, unsigned dstID)
+    {
+        for (auto J = paths->begin(), B = paths->end(); J != B; ++J)
+        {
+            if ((*J).front() == dstID && std::find((*J).begin(), (*J).end(), srcID) == (*J).end())
+            {
+                std::vector<unsigned> new_path((*J));
+                new_path.insert(new_path.begin(), srcID);
+                paths->insert(new_path);
+            } else if ((*J).back() == srcID && std::find((*J).begin(), (*J).end(), dstID) == (*J).end())
+            {
+                std::vector<unsigned> new_path((*J));
+                new_path.push_back(dstID);
+                paths->insert(new_path);
+            }
+        }
+    }
 };
 
 
@@ -180,19 +217,34 @@ public:
         testGetExit();
         testAddition();
         testEquivalence();
+        testGetPaths();
         testGraphDump();
 
         GraphTest::runTests ();
     }
 
 private:
-    void testGraphDump ()
-    {
-        GraphGenerator<myNode, myEdge, myGraph> generator;
-        myGraph randomGraph = generator.generateRandomGraph(10);
 
-        myGraphVisual myGV ("mygraph", &randomGraph);
-        myGV.witeGraph();
+    myGraph stdGraph(unsigned ids[])
+    {
+        myGraph graph;
+
+        myNode* node1 = new myNode(ids[0]);
+        myNode* node2 = new myNode(ids[1]);
+        myNode* node3 = new myNode(ids[2]);
+        graph.addNode(node1->getId(), node1);
+        graph.addNode(node2->getId(), node2);
+        graph.addNode(node3->getId(), node3);
+
+        // Add edges
+        myEdge* edge1 = new myEdge(node1, node2);
+        myEdge* edge2 = new myEdge(node2, node3);
+        myEdge* edge3 = new myEdge(node1, node3);
+        graph.addEdge(edge1);
+        graph.addEdge(edge2);
+        graph.addEdge(edge3);
+        
+        return graph;
     }
 
     void testGetEntry()
@@ -276,28 +328,49 @@ private:
         cout << "testEquivalence passed!" << endl;
     }
 
-    myGraph stdGraph(unsigned ids[])
+    void testGetPaths()
     {
-        myGraph graph;
-
-        myNode* node1 = new myNode(ids[0]);
-        myNode* node2 = new myNode(ids[1]);
-        myNode* node3 = new myNode(ids[2]);
-        graph.addNode(node1->getId(), node1);
-        graph.addNode(node2->getId(), node2);
-        graph.addNode(node3->getId(), node3);
-
-        // Add edges
-        myEdge* edge1 = new myEdge(node1, node2);
-        myEdge* edge2 = new myEdge(node2, node3);
-        myEdge* edge3 = new myEdge(node1, node3);
-        graph.addEdge(edge1);
-        graph.addEdge(edge2);
-        graph.addEdge(edge3);
+        cout << "Running testGetPaths..." << endl;
         
-        return graph;
-    }
+        unsigned ids[] = {1, 2, 3};
+        myGraph graph = stdGraph(ids);
 
+
+        myNode* node4 = new myNode(4);
+        myNode* node5 = new myNode(5);
+        graph.addNode(node4->getId(), node4);
+        graph.addNode(node5->getId(), node5);
+        myEdge* edge4 = new myEdge(graph.getMap()[2], node4);
+        myEdge* edge5 = new myEdge(node4, graph.getMap()[3]);
+        myEdge* edge6 = new myEdge(graph.getMap()[3], node5);
+        myEdge* edge7 = new myEdge(node5, graph.getMap()[1]);
+        myEdge* edge8 = new myEdge(node4, graph.getMap()[2]);
+        graph.addEdge(edge4);
+        graph.addEdge(edge5);
+        graph.addEdge(edge6);
+        graph.addEdge(edge7);
+        graph.addEdge(edge8);
+
+        std::set<std::vector<unsigned>> paths = graph.getPaths();
+        std::set<std::vector<unsigned>> test_paths = {{1,2},{1,2,3},{1,2,3,5},{1,2,4},
+        {1,2,4,3},{1,2,4,3,5},{1,3},{1,3,5},{2,3},{2,3,5},{2,3,5,1},{2,4},{2,4,3},
+        {2,4,3,5},{2,4,3,5,1},{3,5},{3,5,1},{3,5,1,2},{3,5,1,2,4},{4,2},{4,2,3},{4,2,3,5},
+        {4,2,3,5,1},{4,3},{4,3,5},{4,3,5,1},{4,3,5,1,2},{5,1},{5,1,2},{5,1,2,3},{5,1,2,4},
+        {5,1,2,4,3},{5,1,3}};
+
+        assert(paths == test_paths);
+
+        cout << "testGetPaths passed!" << endl;
+    }
+    
+    void testGraphDump ()
+    {
+        GraphGenerator<myNode, myEdge, myGraph> generator;
+        myGraph randomGraph = generator.generateRandomGraph(10);
+
+        myGraphVisual myGV ("mygraph", &randomGraph);
+        myGV.witeGraph();
+    }
 
 };
 #endif 
