@@ -2,7 +2,6 @@
 #define _GENERIC_GRAPH_H_
 #include <set>
 #include <map>
-#include <iostream>
 
 using namespace std;
 
@@ -180,11 +179,9 @@ public:
     }
 
     virtual ~GenericGraph()
-    {
-        //cout << "graph: " << this << endl;
+    {       
         for (auto I = m_IDToNodeMap.begin(), E = m_IDToNodeMap.end(); I != E; ++I)
         {
-            //cout << I->second << endl;
             delete I->second;
         }      
     }
@@ -237,6 +234,8 @@ public:
         delete edge;
         return;
     }
+
+    virtual void build() {}
 };
 
 #endif 

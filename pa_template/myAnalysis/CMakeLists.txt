@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 project(myAnalysis LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Find LLVM package
@@ -20,5 +20,5 @@ add_definitions(${LLVM_DEFINITIONS})
 add_executable(myAnalysis src/main.cpp src/test.cpp src/analysis.cpp)
 
 # Link with LLVM libraries
-llvm_map_components_to_libnames(LLVM_LIBS core irreader support)
+llvm_map_components_to_libnames(LLVM_LIBS analysis core irreader support)
 target_link_libraries(myAnalysis ${LLVM_LIBS})
