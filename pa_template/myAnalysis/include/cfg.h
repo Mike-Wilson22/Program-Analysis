@@ -96,7 +96,31 @@ public:
 
         while (!worklist.empty()) 
         {
-            // add your code here
+            CFGNode* node = worklist.front();
+            llvm::Instruction* inst = node->getInstruction();
+            worklist.pop();
+
+            int numInstr = inst->getNumSuccessors();
+            if (numInstr == 0) {
+                addCFGEdge(node, exitNode);
+            }
+
+            for (int i = 0; i < numInstr; i++) {
+                llvm::BasicBlock* BB = inst->getSuccessor(i);
+                if (visited.find(BB) == visited.end()) {
+                    addCFGEdge(node, visited[BB].first);
+                    continue;
+                }
+
+                vector<CFGNode*> subgraph = getSubgraph(BB); 
+                if (!subgraph.empty()) 
+                {
+                }
+                addCFGEdge(node, subgraph.front());
+                worklist.push(subgraph.back());
+                visited[BB] = make_pair(subgraph.front(), subgraph.back());
+            }
+
         }
     }
 

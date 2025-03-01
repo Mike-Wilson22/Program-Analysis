@@ -182,6 +182,31 @@ void buildPAG (LLVM& llvmParser, const std::string &Filename = "pag")
     return;
 }
 
+void printCallBranchInstr(LLVM& llvmParser) {
+    errs() << "@@printCallandBranchInstructions\n";
+
+    for (auto it = llvmParser.func_begin (); it != llvmParser.func_end (); it++) 
+    {
+        llvm::Function *function = *it;
+
+        if (function->isDeclaration())
+            continue;
+
+        outs() << "Function: " << function->getName() << "\n";
+        for (const auto &bb : *function) 
+        {
+            for (const auto &instr : bb) 
+            {
+                StringRef opcodeName = instr.getOpcodeName();
+                if (opcodeName.compare(StringRef("br")) == 0 || opcodeName.compare(StringRef("call")) == 0) {
+                    outs() << "    [" << opcodeName << "] " << instr << "\n";
+                }
+            }
+        }
+
+        outs() << "\n";
+    }
+}
 
 void analyzeModule(LLVM& llvmParser, string type) 
 {
@@ -212,5 +237,10 @@ void analyzeModule(LLVM& llvmParser, string type)
     if (type == "pag")
     {
         buildPAG (llvmParser);
+    }
+
+    if (type == "call_branch")
+    {
+        printCallBranchInstr(llvmParser);
     }
 }

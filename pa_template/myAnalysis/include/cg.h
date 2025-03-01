@@ -60,13 +60,13 @@ public:
     void build ()
     {
         if (!llvmParser) return;
-
+        int i = 0;
         for (auto it = llvmParser->func_begin(); it != llvmParser->func_end(); ++it) 
         {
             llvm::Function *F = *it;
             if (F->getName().startswith("llvm.dbg.")) continue;
 
-            // add your code here
+            func2Nodes[F] = addCGNode(F);
         }
 
         set<CGNode*> visited;
@@ -79,7 +79,25 @@ public:
             worklist.push (node);
             while (!worklist.empty()) 
             {
-                 // add your code here
+                CGNode *currNode = worklist.front();
+                worklist.pop();
+                llvm::Function* func = currNode->getLLVMFunc();
+                for (const auto &bb : *func) 
+                {
+                    for (const auto &instr : bb) 
+                    {
+                        auto *callInst = llvm::dyn_cast<llvm::CallBase*>(instr);
+                        if (!callInst) {continue;}
+                        if (callInst->getCalledFunction()) {
+                            CGNode *destNode = func2Nodes[callInst->getCalledFunction()];
+                            currNode->addCallsite(callInst);
+                            addCGEdge(currNode, destNode);
+                            if (visited.find(destNode) == visited.end()) {
+                                worklist.push(destNode);
+                            }
+                        }
+                    }
+                }
             }
         }     
     }
