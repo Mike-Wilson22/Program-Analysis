@@ -61,12 +61,15 @@ public:
     {
         if (!llvmParser) return;
         int i = 0;
+        CGNode* prevNode;
         for (auto it = llvmParser->func_begin(); it != llvmParser->func_end(); ++it) 
         {
             llvm::Function *F = *it;
             if (F->getName().startswith("llvm.dbg.")) continue;
-
-            func2Nodes[F] = addCGNode(F);
+            CGNode* node = addCGNode(F);
+            func2Nodes[F] = node;
+            prevNode = node;
+            int x = 1;
         }
 
         set<CGNode*> visited;
@@ -75,20 +78,25 @@ public:
             CGNode *node = nodeItr->second;
             if (visited.find(node) != visited.end()) continue;
 
+            for (auto it = m_IDToNodeMap.begin(); it != m_IDToNodeMap.end(); ++it) 
+            {
+                CGNode* newNode = it->second;
+            }
             queue<CGNode*> worklist;
             worklist.push (node);
             while (!worklist.empty()) 
             {
-                CGNode *currNode = worklist.front();
+                CGNode* currNode = worklist.front();
                 worklist.pop();
                 llvm::Function* func = currNode->getLLVMFunc();
-                for (const auto &bb : *func) 
+                for (auto &bb : *func) 
                 {
-                    for (const auto &instr : bb) 
+                    for (auto &instr : bb) 
                     {
-                        auto *callInst = llvm::dyn_cast<llvm::CallBase*>(instr);
+                        auto callInst = llvm::dyn_cast<llvm::CallBase>(&instr);
                         if (!callInst) {continue;}
                         if (callInst->getCalledFunction()) {
+                            if (callInst->getCalledFunction()->getName().startswith("llvm.dbg")) continue;
                             CGNode *destNode = func2Nodes[callInst->getCalledFunction()];
                             currNode->addCallsite(callInst);
                             addCGEdge(currNode, destNode);
