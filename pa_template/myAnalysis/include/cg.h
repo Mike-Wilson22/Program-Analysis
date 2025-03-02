@@ -61,15 +61,11 @@ public:
     {
         if (!llvmParser) return;
         int i = 0;
-        CGNode* prevNode;
         for (auto it = llvmParser->func_begin(); it != llvmParser->func_end(); ++it) 
         {
             llvm::Function *F = *it;
             if (F->getName().startswith("llvm.dbg.")) continue;
-            CGNode* node = addCGNode(F);
-            func2Nodes[F] = node;
-            prevNode = node;
-            int x = 1;
+            func2Nodes[F] = addCGNode(F);
         }
 
         set<CGNode*> visited;
@@ -78,10 +74,6 @@ public:
             CGNode *node = nodeItr->second;
             if (visited.find(node) != visited.end()) continue;
 
-            for (auto it = m_IDToNodeMap.begin(); it != m_IDToNodeMap.end(); ++it) 
-            {
-                CGNode* newNode = it->second;
-            }
             queue<CGNode*> worklist;
             worklist.push (node);
             while (!worklist.empty()) 
