@@ -9,8 +9,10 @@
 #include "pag.h"
 #include "cfg.h"
 #include "icfg.h"
+#include "otf_pta.h"
 
 using namespace llvm;
+map<llvm::Value*, set<llvm::CallBase*>> CG::value2IndirectCS;
 
 static inline void printFunctions (LLVM& llvmParser)
 {
@@ -173,7 +175,10 @@ void buildICFG (LLVM& llvmParser, const std::string &Filename = "icfg")
 
 void buildPAG (LLVM& llvmParser, const std::string &Filename = "pag") 
 {
-    PAG pag (&llvmParser);
+    ICFG icfg (&llvmParser);
+    icfg.build ();
+
+    PAG pag (&icfg);
     pag.build();
     
     PAGVis vis(Filename, &pag);
@@ -182,31 +187,15 @@ void buildPAG (LLVM& llvmParser, const std::string &Filename = "pag")
     return;
 }
 
-void printCallBranchInstr(LLVM& llvmParser) {
-    errs() << "@@printCallandBranchInstructions\n";
+void runPTA (LLVM& llvmParser)
+{
+    ICFG icfg (&llvmParser);
+    icfg.build ();
 
-    for (auto it = llvmParser.func_begin (); it != llvmParser.func_end (); it++) 
-    {
-        llvm::Function *function = *it;
-
-        if (function->isDeclaration())
-            continue;
-
-        outs() << "Function: " << function->getName() << "\n";
-        for (const auto &bb : *function) 
-        {
-            for (const auto &instr : bb) 
-            {
-                StringRef opcodeName = instr.getOpcodeName();
-                if (opcodeName.compare(StringRef("br")) == 0 || opcodeName.compare(StringRef("call")) == 0) {
-                    outs() << "    [" << opcodeName << "] " << instr << "\n";
-                }
-            }
-        }
-
-        outs() << "\n";
-    }
+    OTFPTA op (icfg);
+    op.solve ();
 }
+
 
 void analyzeModule(LLVM& llvmParser, string type) 
 {
@@ -239,8 +228,8 @@ void analyzeModule(LLVM& llvmParser, string type)
         buildPAG (llvmParser);
     }
 
-    if (type == "call_branch")
+    if (type == "pta")
     {
-        printCallBranchInstr(llvmParser);
+        runPTA (llvmParser);
     }
 }

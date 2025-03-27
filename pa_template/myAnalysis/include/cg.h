@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <unordered_set>
 #include "generic_graph.h"
 #include "graph_visual.h"
 #include "graph_test.h"
@@ -60,12 +61,14 @@ public:
     void build ()
     {
         if (!llvmParser) return;
-        int i = 0;
+
         for (auto it = llvmParser->func_begin(); it != llvmParser->func_end(); ++it) 
         {
             llvm::Function *F = *it;
             if (F->getName().startswith("llvm.dbg.")) continue;
-            func2Nodes[F] = addCGNode(F);
+
+            CGNode *node = addCGNode(F);
+            func2Nodes[F] = node;
         }
 
         set<CGNode*> visited;
@@ -78,24 +81,47 @@ public:
             worklist.push (node);
             while (!worklist.empty()) 
             {
-                CGNode* currNode = worklist.front();
+                node = worklist.front();
                 worklist.pop();
-                llvm::Function* func = currNode->getLLVMFunc();
-                for (auto &bb : *func) 
+                visited.insert(node);
+
+                llvm::Function* callerFunc = node->getLLVMFunc ();
+                for (llvm::BasicBlock &BB : *callerFunc) 
                 {
-                    for (auto &instr : bb) 
+                    for (llvm::Instruction &I : BB) 
                     {
-                        auto callInst = llvm::dyn_cast<llvm::CallBase>(&instr);
-                        if (!callInst) {continue;}
-                        if (callInst->getCalledFunction()) {
-                            if (callInst->getCalledFunction()->getName().startswith("llvm.dbg")) continue;
-                            CGNode *destNode = func2Nodes[callInst->getCalledFunction()];
-                            currNode->addCallsite(callInst);
-                            addCGEdge(currNode, destNode);
-                            if (visited.find(destNode) == visited.end()) {
-                                worklist.push(destNode);
+                        if (llvm::isa<llvm::DbgInfoIntrinsic>(&I) ||
+                            llvm::isa<llvm::DbgVariableIntrinsic>(&I)) 
+                        {
+                            continue;
+                        }
+
+                        llvm::CallBase* callInst = llvm::dyn_cast<llvm::CallBase>(&I);
+                        if (callInst == NULL)
+                        {
+                            continue;
+                        }
+
+                        llvm::Function* calleeFunc = callInst->getCalledFunction();
+                        if (calleeFunc != NULL)
+                        {
+                            CGNode* calleeNode = getCGNode (calleeFunc);
+                            assert (calleeNode != NULL);
+                            addCGEdge (node, calleeNode);
+
+                            if (visited.find(calleeNode) == visited.end()) 
+                            {
+                                worklist.push(calleeNode);
                             }
                         }
+                        else
+                        {
+                            llvm::Value *fpVal = callInst->getCalledOperand();
+                            fpVal = fpVal->stripPointerCasts();
+                            value2IndirectCS[fpVal].insert(callInst);
+                        }
+
+                        node->addCallsite (callInst);  
                     }
                 }
             }
@@ -111,6 +137,41 @@ public:
         }
         return itr->second;
     }
+
+    void refine(const set<llvm::CallBase*> &callSites,
+                const unordered_set<llvm::Function*> &callees)
+    {
+        for (llvm::CallBase *callInst : callSites)
+        {
+            llvm::Function *caller = callInst->getFunction();
+            if (!caller) 
+            {
+                continue;
+            }
+            CGNode* callerNode = getCGNode (caller);
+            assert (callerNode != NULL);
+
+            for (llvm::Function *callee : callees)
+            {
+                CGNode* calleeNode = getCGNode (callee);
+                assert (calleeNode != NULL);
+
+                addCGEdge (callerNode, calleeNode);
+            }
+        }
+    }
+
+    static set<llvm::CallBase*> getCallsites (llvm::Value* fVal)
+    {
+        auto it = value2IndirectCS.find(fVal);
+        if (it == value2IndirectCS.end())
+        {
+            return {};
+        }
+
+        return it->second;
+    }
+
 private:
     inline unsigned getNextNodeId () 
     {
@@ -134,10 +195,10 @@ private:
 
         return edge;
     }
-
 private:
     LLVM *llvmParser;
     map<llvm::Function*, CGNode*> func2Nodes;
+    static map<llvm::Value*, set<llvm::CallBase*>> value2IndirectCS;
 };
 
 class CGVisual : public GraphVis<CGNode, CGEdge, CG>
