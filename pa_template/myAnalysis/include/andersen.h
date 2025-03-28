@@ -110,7 +110,14 @@ private:
     // 2a) Copy: PTS(dst) ⊇ PTS(src)
     void handleCopyEdge(PAGEdge *edge)
     {
-        // add your code here
+        PAGNode *src = edge->getSrcNode();
+        PAGNode *dst = edge->getDstNode();
+
+        bool changed = ptsMap[dst].unionWith(ptsMap[src]);
+        if (changed) {
+            checkAndSetFuncPtr(dst);
+            worklist.push(dst);
+        }
     }
 
     // 2b) Store: (*src) = dst
@@ -118,6 +125,19 @@ private:
     void handleStoreEdge(PAGEdge *edge)
     {
         // add your code here
+        PAGNode *dst = edge->getSrcNode();
+        PAGNode *src = edge->getDstNode();
+        auto srcSet = ptsMap[src].getSet();
+        PTS dstSet = ptsMap[dst];
+
+        bool changed;
+        for (auto srcObject = srcSet.begin(); srcObject != srcSet.end(); srcObject++) {
+            changed = ptsMap[*srcObject].unionWith(dstSet);
+            if (changed) {
+                checkAndSetFuncPtr(*srcObject);
+                worklist.push(*srcObject);
+            }
+        }
     }
 
     // 2c) Load: dst = (*src)
@@ -125,6 +145,20 @@ private:
     void handleLoadEdge(PAGEdge *edge)
     {
         // add your code here
+        PAGNode *src = edge->getSrcNode();
+        PAGNode *dst = edge->getDstNode();
+        auto srcSet = ptsMap[src].getSet();
+
+        bool changed;
+        bool changedOnce = true;
+        for (auto srcObject = srcSet.begin(); srcObject != srcSet.end(); srcObject++) {
+            changed = ptsMap[dst].unionWith(ptsMap[*srcObject]);
+            if (changed) {
+                changedOnce = false;
+                checkAndSetFuncPtr(dst);
+                worklist.push(dst);
+            }
+        }
     }
 };
 

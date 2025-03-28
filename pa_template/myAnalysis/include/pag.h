@@ -333,21 +333,37 @@ private:
         else if (llvmParser->isAssignment(inst))
         {
             // dstVal = srcVal
-            // add your code here
+            auto [srcVal, dstVal] = llvmParser->getOperandsAssignment(inst);
+            PAGNode *srcNode = addValueNode(srcVal);
+            PAGNode *dstNode = addValueNode(dstVal);
+
+            PAGEdge *copyEdge = new PAGEdge(srcNode, dstNode, CST_COPY);
+            addEdge(copyEdge);
+            
         }
 
         // 3) *p = q  (“store”)
         else if (llvmParser->isStore(inst))
         {
             // *ptrVal = srcVal
-            // add your code here
+            auto [pointVal, srcVal] = llvmParser->getOperandsStore(inst);
+            PAGNode *pointNode = addValueNode(pointVal);
+            PAGNode *srcNode = addValueNode(srcVal);
+
+            PAGEdge *storeEdge = new PAGEdge(srcNode, pointNode, CST_STORE);
+            addEdge(storeEdge);
         }
 
         // 4) q = *p  (“load”)
         else if (llvmParser->isLoad(inst))
         {
             // dstVal = *ptrNode
-            // add your code here
+            auto [pointVal, dstVal] = llvmParser->getOperandsLoad(inst);
+            PAGNode *pointNode = addValueNode(pointVal);
+            PAGNode *dstNode = addValueNode(dstVal);
+
+            PAGEdge *loadEdge = new PAGEdge(pointNode, dstNode, CST_LOAD);
+            addEdge(loadEdge);
         }
         
         // 5) other instructions
