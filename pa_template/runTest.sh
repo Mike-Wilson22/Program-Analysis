@@ -66,7 +66,7 @@ function runAnalysis()
 
         compareResults $benchDir
     done
-    #clean
+    clean
 }
 
 ####################################################################

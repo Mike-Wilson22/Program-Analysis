@@ -359,8 +359,16 @@ private:
         {
             // dstVal = *ptrNode
             auto [pointVal, dstVal] = llvmParser->getOperandsLoad(inst);
-            PAGNode *pointNode = addValueNode(pointVal);
-            PAGNode *dstNode = addValueNode(dstVal);
+            auto *loadInst = llvm::dyn_cast<llvm::LoadInst>(inst);
+            PAGNode *pointNode;
+            PAGNode *dstNode;
+            if (loadInst->getType()->isPointerTy()) {
+                pointNode = addValueNode(pointVal);
+                dstNode = addValueNode(dstVal);
+            } else {
+                pointNode = addValueNode(pointVal, PNT_NONE);
+                dstNode = addValueNode(dstVal, PNT_NONE);
+            }
 
             PAGEdge *loadEdge = new PAGEdge(pointNode, dstNode, CST_LOAD);
             addEdge(loadEdge);

@@ -147,8 +147,11 @@ private:
         // add your code here
         PAGNode *src = edge->getSrcNode();
         PAGNode *dst = edge->getDstNode();
-        auto srcSet = ptsMap[src].getSet();
+        if (dst->nodeType == PNT_NONE) {
+            return;
+        }
 
+        auto srcSet = ptsMap[src].getSet();
         bool changed;
         bool changedOnce = true;
         for (auto srcObject = srcSet.begin(); srcObject != srcSet.end(); srcObject++) {
