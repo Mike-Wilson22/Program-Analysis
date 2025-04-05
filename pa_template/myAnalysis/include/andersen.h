@@ -112,10 +112,15 @@ private:
     {
         PAGNode *src = edge->getSrcNode();
         PAGNode *dst = edge->getDstNode();
+        if (isPointerValue (src) == false)
+        {
+            return;
+        }
 
         bool changed = ptsMap[dst].unionWith(ptsMap[src]);
-        if (changed) {
-            checkAndSetFuncPtr(dst);
+        if (changed) 
+        {
+            checkAndSetFuncPtr (dst);
             worklist.push(dst);
         }
     }
@@ -124,18 +129,21 @@ private:
     //   For each object o in PTS(src), do PTS(o) ⊇ PTS(dst)
     void handleStoreEdge(PAGEdge *edge)
     {
-        // add your code here
-        PAGNode *dst = edge->getSrcNode();
-        PAGNode *src = edge->getDstNode();
-        auto srcSet = ptsMap[src].getSet();
-        PTS dstSet = ptsMap[dst];
+        PAGNode *valNode = edge->getSrcNode();
+        PAGNode *ptrNode = edge->getDstNode();
+        if (isPointerValue (valNode) == false)
+        {
+            return;
+        }
 
-        bool changed;
-        for (auto srcObject = srcSet.begin(); srcObject != srcSet.end(); srcObject++) {
-            changed = ptsMap[*srcObject].unionWith(dstSet);
-            if (changed) {
-                checkAndSetFuncPtr(*srcObject);
-                worklist.push(*srcObject);
+        for (auto *obj : ptsMap[ptrNode].getSet()) 
+        {
+            // If 'obj' can itself hold a points-to set, unify them
+            bool changed = ptsMap[obj].unionWith(ptsMap[valNode]);
+            if (changed) 
+            {
+                checkAndSetFuncPtr (obj);
+                worklist.push(obj);
             }
         }
     }
@@ -144,22 +152,21 @@ private:
     //   For each object o in PTS(src), do PTS(dst) ⊇ PTS(o)
     void handleLoadEdge(PAGEdge *edge)
     {
-        // add your code here
-        PAGNode *src = edge->getSrcNode();
-        PAGNode *dst = edge->getDstNode();
-        if (dst->nodeType == PNT_NONE) {
+        PAGNode *ptrNode = edge->getSrcNode();
+        PAGNode *dstNode = edge->getDstNode();
+        if (isPointerValue (dstNode) == false)
+        {
             return;
         }
 
-        auto srcSet = ptsMap[src].getSet();
-        bool changed;
-        bool changedOnce = true;
-        for (auto srcObject = srcSet.begin(); srcObject != srcSet.end(); srcObject++) {
-            changed = ptsMap[dst].unionWith(ptsMap[*srcObject]);
-            if (changed) {
-                changedOnce = false;
-                checkAndSetFuncPtr(dst);
-                worklist.push(dst);
+        // For each object that 'ptrNode' points to, union that object’s PTS into 'dstNode'
+        for (auto *obj : ptsMap[ptrNode].getSet()) 
+        {
+            bool changed = ptsMap[dstNode].unionWith(ptsMap[obj]);
+            if (changed) 
+            {
+                checkAndSetFuncPtr (dstNode);
+                worklist.push(dstNode);
             }
         }
     }
