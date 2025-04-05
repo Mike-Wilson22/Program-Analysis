@@ -230,6 +230,14 @@ private:
             DFGNode* node = itNode->second;
 
             // add your code here
+            ValueSet useSet = getUses(node);
+            for (auto use = useSet.begin(); use != useSet.end(); ++use) {
+                for (auto defNode = defToNode[*use].begin(); defNode != defToNode[*use].end(); ++defNode) {
+                    if (*defNode != node) {
+                        addDFGEdge(cfg, *defNode, node, *use);
+                    }
+                }
+            }
         }
     }
 
@@ -243,13 +251,31 @@ private:
 
         //2 Worklist-based iteration
         // add your code here
-        std::stack<CFGNode*> stack;
-        stack.push(cfg->getEntryNode());
-        std::stack<CFGNode*> visited;
+        std::stack<CFGNode*> nodeStack;
+        nodeStack.push(cfg->getEntryNode());
+        std::set<CFGNode*> visited;
 
-        while (!stack.empty()) {
-            CFGNode* node = stack.pop();
-            visited.push(node);
+        while (!nodeStack.empty()) {
+            CFGNode* node = nodeStack.top();
+            nodeStack.pop();
+            visited.insert(node);
+            ValueSet oldSet = OUT[node];
+
+            for (auto pred = node->inEdgeBegin(); pred != node->inEdgeEnd(); ++pred) {
+                CFGNode* inNode = (*pred)->getSrcNode();
+                IN[node].insert(OUT[inNode].begin(), OUT[inNode].end());
+            }
+
+            ValueSet tempSet = getMinus(IN[node], KILL[node]);
+            tempSet.insert(GEN[node].begin(), GEN[node].end());
+            OUT[node] = tempSet;
+
+            for (auto succ = node->outEdgeBegin(); succ != node->outEdgeEnd(); ++succ) {
+                CFGNode* outNode = (*succ)->getDstNode();
+                if (visited.find(outNode) == visited.end() || oldSet != OUT[node]) {
+                    nodeStack.push(outNode);
+                }
+            }
         }
 
         buildDFG(cfg, IN);
