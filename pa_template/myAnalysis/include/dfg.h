@@ -234,28 +234,8 @@ private:
             for (auto use = useSet.begin(); use != useSet.end(); ++use) {
                 for (auto defineNode = defToNode[*use].begin(); defineNode != defToNode[*use].end(); ++defineNode) {
                     if (*defineNode != node) {
-                        std::queue<DFGNode*> queue;
-                        std::set<DFGNode*> visited;
-                        queue.push(*defineNode);
-                        bool finished = false;
-                        while (!queue.empty() && !finished) {
-                            DFGNode* queueNode = queue.front();
-                            queue.pop();
-                            visited.insert(queueNode);
-                            if (KILL[queueNode].find(*use) == KILL[queueNode].end()) {
-                                for (auto succEdge = queueNode->outEdgeBegin(); succEdge != queueNode->outEdgeEnd(); ++succEdge) {
-                                    if ((*succEdge)->getDstNode() == node) {
-                                        addDFGEdge(cfg, *defineNode, node, *use);
-                                        finished = true;
-                                        break;
-                                    } else {
-                                        if (visited.find((*succEdge)->getDstNode()) == visited.end()) {
-                                            queue.push((*succEdge)->getDstNode());
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        addDFGEdge(cfg, *defineNode, node, *use);
+                        
                     }
                 }
             }
