@@ -222,7 +222,7 @@ private:
     }
 
 
-    inline void buildDFG(CFG *cfg, DFASet& IN) 
+    inline void buildDFG(CFG *cfg, DFASet& IN, DFASet &KILL) 
     {
         // Iterate over all CFG nodes
         for (auto itNode = cfg->begin(); itNode != cfg->end(); itNode++) 
@@ -232,12 +232,44 @@ private:
             // add your code here
             ValueSet useSet = getUses(node);
             for (auto use = useSet.begin(); use != useSet.end(); ++use) {
-                for (auto defNode = defToNode[*use].begin(); defNode != defToNode[*use].end(); ++defNode) {
-                    if (*defNode != node) {
-                        addDFGEdge(cfg, *defNode, node, *use);
+                for (auto defineNode = defToNode[*use].begin(); defineNode != defToNode[*use].end(); ++defineNode) {
+                    if (*defineNode != node) {
+                        std::queue<DFGNode*> queue;
+                        std::set<DFGNode*> visited;
+                        queue.push(*defineNode);
+                        bool finished = false;
+                        while (!queue.empty() && !finished) {
+                            DFGNode* queueNode = queue.front();
+                            queue.pop();
+                            visited.insert(queueNode);
+                            if (KILL[queueNode].find(*use) == KILL[queueNode].end()) {
+                                for (auto succEdge = queueNode->outEdgeBegin(); succEdge != queueNode->outEdgeEnd(); ++succEdge) {
+                                    if ((*succEdge)->getDstNode() == node) {
+                                        addDFGEdge(cfg, *defineNode, node, *use);
+                                        finished = true;
+                                        break;
+                                    } else {
+                                        if (visited.find((*succEdge)->getDstNode()) == visited.end()) {
+                                            queue.push((*succEdge)->getDstNode());
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
+            //for (auto genVal = GEN[node].begin(); genVal != GEN[node].end(); ++genVal) {
+            //    for (auto itNode2 = cfg->begin(); itNode2 != cfg->end(); itNode2++) {
+            //        DFGNode* node2 = itNode2->second;
+            //        if (node2 == node) { continue; }
+            //        ValueSet useSet = getUses(node2);
+            //        if (IN[node2].find(*genVal) != IN[node2].end() && useSet.find(*genVal) != useSet.end()) {
+            //            addDFGEdge(cfg, node, node2, *genVal);
+            //        }
+            //    }
+            //}
+
         }
     }
 
@@ -261,24 +293,26 @@ private:
             visited.insert(node);
             ValueSet oldSet = OUT[node];
 
+            auto *inNode = &IN[node];
             for (auto pred = node->inEdgeBegin(); pred != node->inEdgeEnd(); ++pred) {
-                CFGNode* inNode = (*pred)->getSrcNode();
-                IN[node].insert(OUT[inNode].begin(), OUT[inNode].end());
+                auto *outNode = &OUT[(*pred)->getSrcNode()];
+                inNode->insert(outNode->begin(), outNode->end());
             }
 
             ValueSet tempSet = getMinus(IN[node], KILL[node]);
             tempSet.insert(GEN[node].begin(), GEN[node].end());
             OUT[node] = tempSet;
 
+            auto *outNode = &OUT[node];
             for (auto succ = node->outEdgeBegin(); succ != node->outEdgeEnd(); ++succ) {
-                CFGNode* outNode = (*succ)->getDstNode();
-                if (visited.find(outNode) == visited.end() || oldSet != OUT[node]) {
-                    nodeStack.push(outNode);
+                CFGNode* dstNode = (*succ)->getDstNode();
+                if (visited.find(dstNode) == visited.end() || oldSet != (*outNode)) {
+                    nodeStack.push(dstNode);
                 }
             }
         }
 
-        buildDFG(cfg, IN);
+        buildDFG(cfg, IN, KILL);
     }
 
     inline void showDFASet (string name, ValueSet& vs)
