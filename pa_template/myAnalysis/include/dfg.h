@@ -222,7 +222,7 @@ private:
     }
 
 
-    inline void buildDFG(CFG *cfg, DFASet& IN, DFASet &KILL) 
+    inline void buildDFG(CFG *cfg, DFASet& IN) 
     {
         // Iterate over all CFG nodes
         for (auto itNode = cfg->begin(); itNode != cfg->end(); itNode++) 
@@ -281,7 +281,7 @@ private:
             }
         }
 
-        buildDFG(cfg, IN, KILL);
+        buildDFG(cfg, IN);
     }
 
     inline void showDFASet (string name, ValueSet& vs)
