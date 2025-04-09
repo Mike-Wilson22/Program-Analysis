@@ -228,59 +228,17 @@ private:
         for (auto itNode = cfg->begin(); itNode != cfg->end(); itNode++) 
         {
             DFGNode* node = itNode->second;
+            ValueSet& inNodeSet = IN[node];
 
             // add your code here
             ValueSet useSet = getUses(node);
             for (auto use = useSet.begin(); use != useSet.end(); ++use) {
                 for (auto defineNode = defToNode[*use].begin(); defineNode != defToNode[*use].end(); ++defineNode) {
-                    if (*defineNode != node) {
-                        bool finished = false;
-                        std::queue<DFGNode*> queue;
-                        std::set<DFGNode*> visited;
-                        for (auto succEdge = (*defineNode)->outEdgeBegin(); succEdge != (*defineNode)->outEdgeEnd(); ++succEdge) {
-                            if ((*succEdge)->getDstNode() == node) {
-                                addDFGEdge(cfg, *defineNode, node, *use);
-                                finished = true;
-                                break;
-                            } else {
-                                if (visited.find((*succEdge)->getDstNode()) == visited.end()) {
-                                    queue.push((*succEdge)->getDstNode());
-                                }
-                            }
-                        }
-                        //queue.push(*defineNode);
-                        while (!queue.empty() && !finished) {
-                            DFGNode* queueNode = queue.front();
-                            queue.pop();
-                            visited.insert(queueNode);
-                            if (KILL[queueNode].find(*use) == KILL[queueNode].end()) {
-                                for (auto succEdge = queueNode->outEdgeBegin(); succEdge != queueNode->outEdgeEnd(); ++succEdge) {
-                                    if ((*succEdge)->getDstNode() == node) {
-                                        addDFGEdge(cfg, *defineNode, node, *use);
-                                        finished = true;
-                                        break;
-                                    } else {
-                                        if (visited.find((*succEdge)->getDstNode()) == visited.end()) {
-                                            queue.push((*succEdge)->getDstNode());
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                    if (*defineNode != node && inNodeSet.find(*use) != inNodeSet.end()) {
+                        addDFGEdge(cfg, *defineNode, node, *use);
                     }
                 }
             }
-            //for (auto genVal = GEN[node].begin(); genVal != GEN[node].end(); ++genVal) {
-            //    for (auto itNode2 = cfg->begin(); itNode2 != cfg->end(); itNode2++) {
-            //        DFGNode* node2 = itNode2->second;
-            //        if (node2 == node) { continue; }
-            //        ValueSet useSet = getUses(node2);
-            //        if (IN[node2].find(*genVal) != IN[node2].end() && useSet.find(*genVal) != useSet.end()) {
-            //            addDFGEdge(cfg, node, node2, *genVal);
-            //        }
-            //    }
-            //}
-
         }
     }
 
