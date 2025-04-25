@@ -11,6 +11,8 @@
 #include "icfg.h"
 #include "otf_pta.h"
 #include "dfg.h"
+#include "dead_code.h"
+
 
 using namespace llvm;
 map<llvm::Value*, set<llvm::CallBase*>> CG::value2IndirectCS;
@@ -212,6 +214,31 @@ void runDFA (LLVM& llvmParser)
     vis.witeGraph();
 }
 
+void runDCDFunc (LLVM& llvmParser)
+{
+    ICFG icfg (&llvmParser);
+    icfg.build ();
+
+    OTFPTA pta (icfg, false);
+    pta.solve ();
+    
+    findUnreachedFunctions(&icfg);
+}
+
+void runDCDVar (LLVM& llvmParser)
+{
+    ICFG icfg (&llvmParser);
+    icfg.build ();
+
+    OTFPTA pta (icfg, false);
+    pta.solve ();
+
+    DFG dfg (icfg, pta);
+    dfg.build ();
+    
+    findDeadDeclarations(&dfg);
+}
+
 
 void analyzeModule(LLVM& llvmParser, string type) 
 {
@@ -252,5 +279,13 @@ void analyzeModule(LLVM& llvmParser, string type)
     if (type == "dfa")
     {
         runDFA (llvmParser);
+    }
+
+    if (type == "dcd1") {
+        runDCDFunc (llvmParser);
+    }
+
+    if (type == "dcd2") {
+        runDCDVar (llvmParser);
     }
 }

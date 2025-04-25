@@ -41,24 +41,32 @@ define dso_local void @execute(void (i32*)* noundef %0, i32* noundef %1) #0 !dbg
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @main() #0 !dbg !36 {
+define dso_local void @dead_function() #0 !dbg !36 {
+  %1 = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata i32* %1, metadata !39, metadata !DIExpression()), !dbg !40
+  store i32 1, i32* %1, align 4, !dbg !40
+  ret void, !dbg !41
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !42 {
   %1 = alloca i32, align 4
   %2 = alloca i32, align 4
   %3 = alloca i32, align 4
   %4 = alloca void (i32*)*, align 8
   store i32 0, i32* %1, align 4
-  call void @llvm.dbg.declare(metadata i32* %2, metadata !39, metadata !DIExpression()), !dbg !40
-  store i32 5, i32* %2, align 4, !dbg !40
-  call void @llvm.dbg.declare(metadata i32* %3, metadata !41, metadata !DIExpression()), !dbg !42
-  store i32 15, i32* %3, align 4, !dbg !42
-  call void @llvm.dbg.declare(metadata void (i32*)** %4, metadata !43, metadata !DIExpression()), !dbg !45
-  store void (i32*)* @foo, void (i32*)** %4, align 8, !dbg !45
-  %5 = load void (i32*)*, void (i32*)** %4, align 8, !dbg !46
-  call void @execute(void (i32*)* noundef %5, i32* noundef %2), !dbg !47
-  store void (i32*)* @bar, void (i32*)** %4, align 8, !dbg !48
-  %6 = load void (i32*)*, void (i32*)** %4, align 8, !dbg !49
-  call void @execute(void (i32*)* noundef %6, i32* noundef %3), !dbg !50
-  ret i32 0, !dbg !51
+  call void @llvm.dbg.declare(metadata i32* %2, metadata !45, metadata !DIExpression()), !dbg !46
+  store i32 5, i32* %2, align 4, !dbg !46
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !47, metadata !DIExpression()), !dbg !48
+  store i32 15, i32* %3, align 4, !dbg !48
+  call void @llvm.dbg.declare(metadata void (i32*)** %4, metadata !49, metadata !DIExpression()), !dbg !51
+  store void (i32*)* @foo, void (i32*)** %4, align 8, !dbg !51
+  %5 = load void (i32*)*, void (i32*)** %4, align 8, !dbg !52
+  call void @execute(void (i32*)* noundef %5, i32* noundef %2), !dbg !53
+  store void (i32*)* @bar, void (i32*)** %4, align 8, !dbg !54
+  %6 = load void (i32*)*, void (i32*)** %4, align 8, !dbg !55
+  call void @execute(void (i32*)* noundef %6, i32* noundef %3), !dbg !56
+  ret i32 0, !dbg !57
 }
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -69,7 +77,7 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !llvm.module.flags = !{!3, !4, !5, !6, !7}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "clang version 14.0.6", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench8", checksumkind: CSK_MD5, checksum: "bbb5b0f754c91938356ca96d71b6feed")
+!1 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench8", checksumkind: CSK_MD5, checksum: "6a516628103a195e8f273aec39ee7735")
 !2 = !{!"clang version 14.0.6"}
 !3 = !{i32 7, !"Dwarf Version", i32 5}
 !4 = !{i32 2, !"Debug Info Version", i32 3}
@@ -104,19 +112,25 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !33 = !DILocation(line: 8, column: 5, scope: !25)
 !34 = !DILocation(line: 8, column: 10, scope: !25)
 !35 = !DILocation(line: 9, column: 1, scope: !25)
-!36 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 12, type: !37, scopeLine: 12, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !13)
+!36 = distinct !DISubprogram(name: "dead_function", scope: !1, file: !1, line: 11, type: !37, scopeLine: 11, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !13)
 !37 = !DISubroutineType(types: !38)
-!38 = !{!12}
-!39 = !DILocalVariable(name: "a", scope: !36, file: !1, line: 13, type: !12)
-!40 = !DILocation(line: 13, column: 9, scope: !36)
-!41 = !DILocalVariable(name: "b", scope: !36, file: !1, line: 13, type: !12)
-!42 = !DILocation(line: 13, column: 16, scope: !36)
-!43 = !DILocalVariable(name: "f", scope: !36, file: !1, line: 14, type: !44)
-!44 = !DIDerivedType(tag: DW_TAG_typedef, name: "FP", file: !1, line: 11, baseType: !28)
-!45 = !DILocation(line: 14, column: 8, scope: !36)
-!46 = !DILocation(line: 15, column: 13, scope: !36)
-!47 = !DILocation(line: 15, column: 5, scope: !36)
-!48 = !DILocation(line: 16, column: 7, scope: !36)
-!49 = !DILocation(line: 17, column: 13, scope: !36)
-!50 = !DILocation(line: 17, column: 5, scope: !36)
-!51 = !DILocation(line: 18, column: 5, scope: !36)
+!38 = !{null}
+!39 = !DILocalVariable(name: "x", scope: !36, file: !1, line: 12, type: !12)
+!40 = !DILocation(line: 12, column: 9, scope: !36)
+!41 = !DILocation(line: 13, column: 5, scope: !36)
+!42 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 17, type: !43, scopeLine: 17, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !13)
+!43 = !DISubroutineType(types: !44)
+!44 = !{!12}
+!45 = !DILocalVariable(name: "a", scope: !42, file: !1, line: 18, type: !12)
+!46 = !DILocation(line: 18, column: 9, scope: !42)
+!47 = !DILocalVariable(name: "b", scope: !42, file: !1, line: 18, type: !12)
+!48 = !DILocation(line: 18, column: 16, scope: !42)
+!49 = !DILocalVariable(name: "f", scope: !42, file: !1, line: 19, type: !50)
+!50 = !DIDerivedType(tag: DW_TAG_typedef, name: "FP", file: !1, line: 16, baseType: !28)
+!51 = !DILocation(line: 19, column: 8, scope: !42)
+!52 = !DILocation(line: 20, column: 13, scope: !42)
+!53 = !DILocation(line: 20, column: 5, scope: !42)
+!54 = !DILocation(line: 21, column: 7, scope: !42)
+!55 = !DILocation(line: 22, column: 13, scope: !42)
+!56 = !DILocation(line: 22, column: 5, scope: !42)
+!57 = !DILocation(line: 23, column: 5, scope: !42)

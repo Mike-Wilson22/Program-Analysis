@@ -5,6 +5,7 @@
 int main(int argc, char* argv[]) 
 {
     int a = argc;
+    int x = 1;
     return (a + 1);
 }
 

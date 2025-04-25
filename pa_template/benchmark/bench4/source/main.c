@@ -1,19 +1,12 @@
 #include <stdio.h>
-
-void C ()
-{
-    printf("C\n");
-}
-
-void B ()
-{
-    C ();
-}
-
-void (*func) () = B;
  
 int main(int argc, char* argv[]) 
 {
-    func ();
+    int z = 0;
+    int x = argc;
+    int y = x;
+    y = z + x;
+
+    return z;
 }
 

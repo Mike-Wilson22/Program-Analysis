@@ -61,22 +61,19 @@ define dso_local i32 @sum(i32 noundef %0) #0 !dbg !8 {
 declare void @llvm.dbg.declare(metadata, metadata, metadata) #1
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @main(i32 noundef %0, i8** noundef %1) #0 !dbg !49 {
+define dso_local i32 @main(i32 noundef %0) #0 !dbg !49 {
+  %2 = alloca i32, align 4
   %3 = alloca i32, align 4
   %4 = alloca i32, align 4
-  %5 = alloca i8**, align 8
-  %6 = alloca i32, align 4
-  store i32 0, i32* %3, align 4
-  store i32 %0, i32* %4, align 4
-  call void @llvm.dbg.declare(metadata i32* %4, metadata !55, metadata !DIExpression()), !dbg !56
-  store i8** %1, i8*** %5, align 8
-  call void @llvm.dbg.declare(metadata i8*** %5, metadata !57, metadata !DIExpression()), !dbg !58
-  call void @llvm.dbg.declare(metadata i32* %6, metadata !59, metadata !DIExpression()), !dbg !60
-  %7 = load i32, i32* %4, align 4, !dbg !61
-  store i32 %7, i32* %6, align 4, !dbg !60
-  %8 = load i32, i32* %6, align 4, !dbg !62
-  %9 = call i32 @sum(i32 noundef %8), !dbg !63
-  ret i32 %9, !dbg !64
+  store i32 0, i32* %2, align 4
+  store i32 %0, i32* %3, align 4
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !50, metadata !DIExpression()), !dbg !51
+  call void @llvm.dbg.declare(metadata i32* %4, metadata !52, metadata !DIExpression()), !dbg !53
+  %5 = load i32, i32* %3, align 4, !dbg !54
+  store i32 %5, i32* %4, align 4, !dbg !53
+  %6 = load i32, i32* %4, align 4, !dbg !55
+  %7 = call i32 @sum(i32 noundef %6), !dbg !56
+  ret i32 %7, !dbg !57
 }
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -87,7 +84,7 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !llvm.module.flags = !{!3, !4, !5, !6, !7}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "clang version 14.0.6", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench3", checksumkind: CSK_MD5, checksum: "5c884e5813e3821c9819b81dcace403a")
+!1 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench3", checksumkind: CSK_MD5, checksum: "7887f82fe71cbf2ea67da9c603eb3dc1")
 !2 = !{!"clang version 14.0.6"}
 !3 = !{i32 7, !"Dwarf Version", i32 5}
 !4 = !{i32 2, !"Debug Info Version", i32 3}
@@ -135,19 +132,12 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !46 = !{!"llvm.loop.mustprogress"}
 !47 = !DILocation(line: 18, column: 12, scope: !8)
 !48 = !DILocation(line: 18, column: 5, scope: !8)
-!49 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 21, type: !50, scopeLine: 22, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
-!50 = !DISubroutineType(types: !51)
-!51 = !{!11, !11, !52}
-!52 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !53, size: 64)
-!53 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !54, size: 64)
-!54 = !DIBasicType(name: "char", size: 8, encoding: DW_ATE_signed_char)
-!55 = !DILocalVariable(name: "argc", arg: 1, scope: !49, file: !1, line: 21, type: !11)
-!56 = !DILocation(line: 21, column: 14, scope: !49)
-!57 = !DILocalVariable(name: "argv", arg: 2, scope: !49, file: !1, line: 21, type: !52)
-!58 = !DILocation(line: 21, column: 26, scope: !49)
-!59 = !DILocalVariable(name: "a", scope: !49, file: !1, line: 23, type: !11)
-!60 = !DILocation(line: 23, column: 9, scope: !49)
-!61 = !DILocation(line: 23, column: 13, scope: !49)
-!62 = !DILocation(line: 24, column: 16, scope: !49)
-!63 = !DILocation(line: 24, column: 12, scope: !49)
-!64 = !DILocation(line: 24, column: 5, scope: !49)
+!49 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 21, type: !9, scopeLine: 22, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!50 = !DILocalVariable(name: "argc", arg: 1, scope: !49, file: !1, line: 21, type: !11)
+!51 = !DILocation(line: 21, column: 14, scope: !49)
+!52 = !DILocalVariable(name: "a", scope: !49, file: !1, line: 23, type: !11)
+!53 = !DILocation(line: 23, column: 9, scope: !49)
+!54 = !DILocation(line: 23, column: 13, scope: !49)
+!55 = !DILocation(line: 24, column: 16, scope: !49)
+!56 = !DILocation(line: 24, column: 12, scope: !49)
+!57 = !DILocation(line: 24, column: 5, scope: !49)

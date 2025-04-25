@@ -8,6 +8,11 @@ void execute(void (*fptr)(int *), int *y) {
     fptr(y);
 }
 
+void dead_function() {
+    int x = 1;
+    return;
+}
+
 typedef void (*FP)(int *x);
 int main() {
     int a = 5, b = 15;

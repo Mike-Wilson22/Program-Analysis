@@ -36,11 +36,14 @@ public:
     }
 
     ICFG* getICFG() { return icfg; }
+
+    DFASet* getGEN() { return &dfgGEN; }
 private:
     LLVM* llvmParser;
     ICFG *icfg;
     OTFPTA *pta;
     map<llvm::Value*, set<DFGNode*>> defToNode;
+    DFASet dfgGEN;
 
 private:
     inline DFASet initializeGEN (CFG *cfg)
@@ -248,6 +251,7 @@ private:
         DFASet IN   = initializeSET (cfg); 
         DFASet OUT  = initializeSET (cfg);
         DFASet GEN  = initializeGEN (cfg);
+        dfgGEN = GEN;
         DFASet KILL = initializeKILL (cfg, GEN);
 
         //2 Worklist-based iteration

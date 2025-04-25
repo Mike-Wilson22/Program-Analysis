@@ -33,6 +33,34 @@ define dso_local i32 @main(i32 noundef %0, i8** noundef %1) #0 !dbg !24 {
   ret i32 0, !dbg !35
 }
 
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @valid_function() #0 !dbg !36 {
+  %1 = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata i32* %1, metadata !39, metadata !DIExpression()), !dbg !40
+  store i32 1, i32* %1, align 4, !dbg !40
+  ret void, !dbg !41
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main2(i32 noundef %0, i8** noundef %1) #0 !dbg !42 {
+  %3 = alloca i32, align 4
+  %4 = alloca i8**, align 8
+  store i32 %0, i32* %3, align 4
+  call void @llvm.dbg.declare(metadata i32* %3, metadata !43, metadata !DIExpression()), !dbg !44
+  store i8** %1, i8*** %4, align 8
+  call void @llvm.dbg.declare(metadata i8*** %4, metadata !45, metadata !DIExpression()), !dbg !46
+  call void @valid_function(), !dbg !47
+  ret i32 0, !dbg !48
+}
+
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local void @dead_function() #0 !dbg !49 {
+  %1 = alloca i32, align 4
+  call void @llvm.dbg.declare(metadata i32* %1, metadata !50, metadata !DIExpression()), !dbg !51
+  store i32 2, i32* %1, align 4, !dbg !51
+  ret void, !dbg !52
+}
+
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 
@@ -43,7 +71,7 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !0 = !DIGlobalVariableExpression(var: !1, expr: !DIExpression())
 !1 = distinct !DIGlobalVariable(name: "f", scope: !2, file: !3, line: 7, type: !5, isLocal: false, isDefinition: true)
 !2 = distinct !DICompileUnit(language: DW_LANG_C99, file: !3, producer: "clang version 14.0.6", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, globals: !4, splitDebugInlining: false, nameTableKind: None)
-!3 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench10", checksumkind: CSK_MD5, checksum: "8cd33e4e7c8a94cc657c11d778c97efc")
+!3 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench10", checksumkind: CSK_MD5, checksum: "8d7113f0f2403f3269597cfbeb819976")
 !4 = !{!0}
 !5 = !DIDerivedType(tag: DW_TAG_typedef, name: "FP", file: !3, line: 5, baseType: !6)
 !6 = !DIDerivedType(tag: DW_TAG_pointer_type, baseType: !7, size: 64)
@@ -76,3 +104,20 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !33 = !DILocation(line: 9, column: 27, scope: !24)
 !34 = !DILocation(line: 10, column: 5, scope: !24)
 !35 = !DILocation(line: 11, column: 5, scope: !24)
+!36 = distinct !DISubprogram(name: "valid_function", scope: !3, file: !3, line: 14, type: !37, scopeLine: 14, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !18)
+!37 = !DISubroutineType(types: !38)
+!38 = !{null}
+!39 = !DILocalVariable(name: "x", scope: !36, file: !3, line: 15, type: !10)
+!40 = !DILocation(line: 15, column: 9, scope: !36)
+!41 = !DILocation(line: 16, column: 5, scope: !36)
+!42 = distinct !DISubprogram(name: "main2", scope: !3, file: !3, line: 19, type: !25, scopeLine: 19, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !18)
+!43 = !DILocalVariable(name: "argc", arg: 1, scope: !42, file: !3, line: 19, type: !10)
+!44 = !DILocation(line: 19, column: 15, scope: !42)
+!45 = !DILocalVariable(name: "argv", arg: 2, scope: !42, file: !3, line: 19, type: !27)
+!46 = !DILocation(line: 19, column: 28, scope: !42)
+!47 = !DILocation(line: 20, column: 5, scope: !42)
+!48 = !DILocation(line: 21, column: 5, scope: !42)
+!49 = distinct !DISubprogram(name: "dead_function", scope: !3, file: !3, line: 25, type: !37, scopeLine: 25, spFlags: DISPFlagDefinition, unit: !2, retainedNodes: !18)
+!50 = !DILocalVariable(name: "y", scope: !49, file: !3, line: 26, type: !10)
+!51 = !DILocation(line: 26, column: 9, scope: !49)
+!52 = !DILocation(line: 27, column: 5, scope: !49)

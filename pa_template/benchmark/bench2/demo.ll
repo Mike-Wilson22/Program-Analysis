@@ -9,17 +9,20 @@ define dso_local i32 @main(i32 noundef %0, i8** noundef %1) #0 !dbg !8 {
   %4 = alloca i32, align 4
   %5 = alloca i8**, align 8
   %6 = alloca i32, align 4
+  %7 = alloca i32, align 4
   store i32 0, i32* %3, align 4
   store i32 %0, i32* %4, align 4
   call void @llvm.dbg.declare(metadata i32* %4, metadata !16, metadata !DIExpression()), !dbg !17
   store i8** %1, i8*** %5, align 8
   call void @llvm.dbg.declare(metadata i8*** %5, metadata !18, metadata !DIExpression()), !dbg !19
   call void @llvm.dbg.declare(metadata i32* %6, metadata !20, metadata !DIExpression()), !dbg !21
-  %7 = load i32, i32* %4, align 4, !dbg !22
-  store i32 %7, i32* %6, align 4, !dbg !21
-  %8 = load i32, i32* %6, align 4, !dbg !23
-  %9 = add nsw i32 %8, 1, !dbg !24
-  ret i32 %9, !dbg !25
+  %8 = load i32, i32* %4, align 4, !dbg !22
+  store i32 %8, i32* %6, align 4, !dbg !21
+  call void @llvm.dbg.declare(metadata i32* %7, metadata !23, metadata !DIExpression()), !dbg !24
+  store i32 1, i32* %7, align 4, !dbg !24
+  %9 = load i32, i32* %6, align 4, !dbg !25
+  %10 = add nsw i32 %9, 1, !dbg !26
+  ret i32 %10, !dbg !27
 }
 
 ; Function Attrs: nofree nosync nounwind readnone speculatable willreturn
@@ -33,7 +36,7 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !llvm.module.flags = !{!3, !4, !5, !6, !7}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "clang version 14.0.6", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench2", checksumkind: CSK_MD5, checksum: "d2d53e5b5846f4d2db44e2959a1d18de")
+!1 = !DIFile(filename: "source/main.c", directory: "/home/cs6890/Program-Analysis/pa_template/benchmark/bench2", checksumkind: CSK_MD5, checksum: "c89533c06d6dec6a05a4e6e27184aa53")
 !2 = !{!"clang version 14.0.6"}
 !3 = !{i32 7, !"Dwarf Version", i32 5}
 !4 = !{i32 2, !"Debug Info Version", i32 3}
@@ -55,6 +58,8 @@ attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 !20 = !DILocalVariable(name: "a", scope: !8, file: !1, line: 7, type: !11)
 !21 = !DILocation(line: 7, column: 9, scope: !8)
 !22 = !DILocation(line: 7, column: 13, scope: !8)
-!23 = !DILocation(line: 8, column: 13, scope: !8)
-!24 = !DILocation(line: 8, column: 15, scope: !8)
-!25 = !DILocation(line: 8, column: 5, scope: !8)
+!23 = !DILocalVariable(name: "x", scope: !8, file: !1, line: 8, type: !11)
+!24 = !DILocation(line: 8, column: 9, scope: !8)
+!25 = !DILocation(line: 9, column: 13, scope: !8)
+!26 = !DILocation(line: 9, column: 15, scope: !8)
+!27 = !DILocation(line: 9, column: 5, scope: !8)

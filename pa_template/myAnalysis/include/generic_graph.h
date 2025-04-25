@@ -202,6 +202,10 @@ public:
         m_NodeNum++;
     }
 
+    inline NodeTy* getNode(unsigned id) {
+        return m_IDToNodeMap[id];
+    }
+
     inline unsigned getNodeNum() 
     {
         return m_NodeNum;
